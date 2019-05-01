@@ -56,7 +56,11 @@ defmodule Alchemy.Voice.Controller do
   end
 
   def handle_call(:add_listener, {pid, _}, state) do
-    {:reply, :ok, Map.update!(state, :listeners, &MapSet.put(&1, pid))}
+    {:reply, :ok, Map.update!(state, :listeners,&MapSet.put(&1, pid))}
+  end
+
+  def handle_call({:add_listener, genserver_pid}, {pid, _}, state) do
+    {:reply, :ok, Map.update!(state, :listeners,&MapSet.put(&1, genserver_pid))}
   end
 
   def handle_info(:stop_playing, state) do
@@ -101,7 +105,7 @@ defmodule Alchemy.Voice.Controller do
 
   defp io_data_stream(data, options) do
     volume = (options[:vol] || 100) / 100
-    opts = [in: data, out: :stream] 
+    opts = [in: data, out: :stream]
     %Proc{out: audio_stream} =
       Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path),
         ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0",
@@ -109,7 +113,7 @@ defmodule Alchemy.Voice.Controller do
          "-af", "volume=#{volume}",
          "-acodec", "libopus", "-b:a", "128k", "pipe:1"], opts)
     audio_stream
-  end 
+  end
 
   defp run_player(path, type, options, parent, state) do
     send(state.ws, {:speaking, true})

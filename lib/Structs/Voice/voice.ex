@@ -221,6 +221,14 @@ defmodule Alchemy.Voice do
       [{pid, _}|_] -> GenServer.call(pid, :add_listener)
     end
   end
+
+  @spec listen_for_end(snowflake, global_name) :: :ok | {:error, String.t}
+  def listen_for_end(guild, global_name) do
+    case Registry.lookup(Registry.Voice, {guild, :controller}) do
+      [] -> {:error, "You're not joined to voice in this guild"}
+      [{pid, _}|_] -> GenServer.call(pid, {:add_listener, :global.whereis_name(global_name)})
+    end
+  end
   @doc """
   Blocks the current process until audio has stopped playing in a guild.
 
