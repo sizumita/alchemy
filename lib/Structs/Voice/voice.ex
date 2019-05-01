@@ -186,7 +186,7 @@ defmodule Alchemy.Voice do
   def stop_audio(guild) do
     case Registry.lookup(Registry.Voice, {guild, :controller}) do
       [] -> {:error, "You're not joined to voice in this guild"}
-      [{pid, _}|_] -> GenServer.call(pid, :stop_playing)
+      [{pid, _}|_] -> GenServer.call(pid, {:stop_playing, :stop_audio_function})
     end
   end
   @doc """

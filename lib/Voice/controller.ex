@@ -29,7 +29,7 @@ defmodule Alchemy.Voice.Controller do
     unless state.kill_timer == nil do
       Process.cancel_timer(state.kill_timer)
     end
-    timer = Process.send_after(self(), :stop_playing, 120)
+    timer = Process.send_after(self(), {:stop_playing, :automatic}, 120)
     :gen_udp.send(state.udp, state.ip, state.port, data)
     {:noreply, %{state | kill_timer: timer}}
   end
@@ -50,8 +50,16 @@ defmodule Alchemy.Voice.Controller do
   def handle_call(:stop_playing, _, state) do
     new = case state.player do
       nil -> state
-      _ -> stop_playing(state)
+      _ -> stop_playing(state, :unknown)
     end
+    {:reply, :ok, new}
+  end
+
+  def handle_call({:stop_playing, source}, _, state) do
+    new = case state.player do
+            nil -> state
+            _ -> stop_playing(state, source)
+          end
     {:reply, :ok, new}
   end
 
@@ -64,7 +72,11 @@ defmodule Alchemy.Voice.Controller do
   end
 
   def handle_info(:stop_playing, state) do
-    {:noreply, stop_playing(state)}
+    {:noreply, stop_playing(state, :unknown)}
+  end
+
+  def handle_info({:stop_playing, source}, state) do
+    {:noreply, stop_playing(state, :unknown)}
   end
 
   # ignore down messages from the task
@@ -72,10 +84,10 @@ defmodule Alchemy.Voice.Controller do
     {:noreply, state}
   end
 
-  defp stop_playing(state) do
+  defp stop_playing(state, source) do
     Task.shutdown(state.player)
     MapSet.to_list(state.listeners)
-    |> Enum.each(&send(&1, {:audio_stopped, state.guild_id}))
+    |> Enum.each(&send(&1, {:audio_stopped, state.guild_id, source}))
     %{state | listeners: MapSet.new()}
   end
 
