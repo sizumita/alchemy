@@ -222,7 +222,6 @@ defmodule Alchemy.Voice do
     end
   end
 
-  @spec listen_for_end(snowflake, global_name) :: :ok | {:error, String.t}
   def listen_for_end(guild, global_name) do
     case Registry.lookup(Registry.Voice, {guild, :controller}) do
       [] -> {:error, "You're not joined to voice in this guild"}
