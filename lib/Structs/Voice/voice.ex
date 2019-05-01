@@ -247,7 +247,7 @@ defmodule Alchemy.Voice do
   def wait_for_end(guild, timeout \\ :infinity) do
     listen_for_end(guild)
     receive do
-      {:audio_stopped, ^guild} -> :ok
+      {:audio_stopped, ^guild, _source} -> :ok
     after
       timeout -> {:error, "Timed out waiting for audio"}
     end
