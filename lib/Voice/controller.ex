@@ -76,7 +76,7 @@ defmodule Alchemy.Voice.Controller do
   end
 
   def handle_info({:stop_playing, source}, state) do
-    {:noreply, stop_playing(state, :unknown)}
+    {:noreply, stop_playing(state, source)}
   end
 
   # ignore down messages from the task
