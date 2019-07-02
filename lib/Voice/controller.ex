@@ -99,13 +99,53 @@ defmodule Alchemy.Voice.Controller do
 
   defp mk_stream(file_path, options) do
     volume = (options[:vol] || 100) / 100
+    ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","#{file_path}",
+                      "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2",
+                      "-af", "volume=#{volume}",
+                      "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
+
+    ffmpeg_command =
+      if options[:phaser] != nil do
+        speed = normalize_value(:speed, options[:phaser][:speed])
+        decay = normalize_value(:decay, options[:phaser][:decay])
+        delay = normalize_value(:delay, options[:phaser][:delay])
+
+        ffmpeg_command ++ ["-filter_complex", "aphaser=in_gain=1:out_gain=1:speed=#{speed}:decay=#{decay}:delay=#{delay}"]
+      else
+        ffmpeg_command
+      end
+
+    ffmpeg_command = ffmpeg_command ++ ["pipe:1"]
     %Proc{out: audio_stream} =
-      Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path),
-        ["-hide_banner", "-loglevel", "quiet", "-i","#{file_path}",
-         "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", 
-         "-af", "volume=#{volume}",
-          "-acodec", "libopus", "-b:a", "128k", "pipe:1"], [out: :stream])
+      Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, [out: :stream])
     audio_stream
+  end
+
+  defp normalize_value(:speed, value) do
+    cond do
+      value < 0.1 == true -> 0.1
+      value > 2.0 == true -> 2.0
+      value == nil -> 0.5
+      true -> value
+    end
+  end
+
+  defp normalize_value(:decay, value) do
+    cond do
+      value < 0.1 == true -> 0.1
+      value > 0.9 == true -> 0.9
+      value == nil -> 0.4
+      true -> value
+    end
+  end
+
+  defp normalize_value(:delay, value) do
+    cond do
+      value < 0.1 == true -> 0.1
+      value > 5.0 == true -> 5.0
+      value == nil -> 3.0
+      true -> value
+    end
   end
 
   defp url_stream(url, options) do
