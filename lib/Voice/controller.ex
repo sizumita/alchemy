@@ -112,6 +112,13 @@ defmodule Alchemy.Voice.Controller do
         filter_complex
       end
 
+    filter_complex =
+      if options[:flanger] != nil do
+        filter_complex <> ",flanger=speed=10:delay=30:depth=10:width=80:phase=10"
+      else
+        filter_complex
+      end
+
     ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "#{file_path}", "-filter_complex", filter_complex, "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
 
     %Proc{out: audio_stream} =
@@ -166,6 +173,13 @@ defmodule Alchemy.Voice.Controller do
       delay = normalize_value(:delay, options[:phaser][:delay])
 
       filter_complex <> ",aphaser=in_gain=1:out_gain=1:speed=#{speed}:decay=#{decay}:delay=#{delay}"
+    else
+      filter_complex
+    end
+
+    filter_complex =
+    if options[:flanger] != nil do
+      filter_complex <> ",flanger=speed=10:delay=30:depth=10:width=80:phase=10"
     else
       filter_complex
     end
