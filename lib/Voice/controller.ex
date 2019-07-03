@@ -102,7 +102,7 @@ defmodule Alchemy.Voice.Controller do
     ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","#{file_path}",
                       "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2",
                       "-af", "volume=#{volume}",
-                      "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
+                      "-acodec", "libopus", "-b:a", "128k"]
 
     ffmpeg_command =
       if options[:phaser] != nil do
