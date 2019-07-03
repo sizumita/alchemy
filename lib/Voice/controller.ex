@@ -156,11 +156,12 @@ defmodule Alchemy.Voice.Controller do
   defp io_data_stream(data, options) do
     volume = (options[:vol] || 100) / 100
     opts = [in: data, out: :stream]
-
     %Proc{out: audio_stream} =
       Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path),
         ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0",
-         "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"], opts)
+         "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2",
+         "-af", "volume=#{volume}",
+         "-acodec", "libopus", "-b:a", "128k", "pipe:1"], opts)
     audio_stream
   end
 
