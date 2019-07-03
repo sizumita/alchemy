@@ -157,24 +157,10 @@ defmodule Alchemy.Voice.Controller do
     volume = (options[:vol] || 100) / 100
     opts = [in: data, out: :stream]
 
-    filter_complex = "volume=#{volume}"
-
-    filter_complex =
-    if options[:phaser] != nil do
-      speed = normalize_value(:speed, options[:phaser][:speed])
-      decay = normalize_value(:decay, options[:phaser][:decay])
-      delay = normalize_value(:delay, options[:phaser][:delay])
-
-      filter_complex <> ",aphaser=in_gain=1:out_gain=1:speed=#{speed}:decay=#{decay}:delay=#{delay}"
-    else
-      filter_complex
-    end
-
-    ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex,
-                      "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
-
     %Proc{out: audio_stream} =
-      Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, opts)
+      Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path),
+        ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0",
+         "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"], opts)
     audio_stream
   end
 
