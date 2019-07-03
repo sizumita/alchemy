@@ -170,7 +170,7 @@ defmodule Alchemy.Voice.Controller do
       filter_complex
     end
 
-    ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex
+    ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex,
                       "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
 
     %Proc{out: audio_stream} =
