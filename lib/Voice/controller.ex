@@ -154,17 +154,10 @@ defmodule Alchemy.Voice.Controller do
   end
 
   defp url_stream(url, options) do
-    %Proc{out: youtube, err: err} =
+    %Proc{out: youtube} =
       Porcelain.spawn(Application.fetch_env!(:alchemy, :youtube_dl_path),
-        ["-q", "-f", "bestaudio", "-o", "-", url], [out: :stream])
-    if Regex.match?(~r/^ERROR:.*/, err) do
-      %Proc{out: youtube2} =
-        Porcelain.spawn(Application.fetch_env!(:alchemy, :youtube_dl_path),
-          ["-q", "-o", "-", url], [out: :stream])
-      io_data_stream(youtube2, options)
-    else
-      io_data_stream(youtube, options)
-    end
+        ["-q", "-f", "bestaudio/webm/mp4", "-o", "-", url], [out: :stream])
+    io_data_stream(youtube, options)
   end
 
   defp io_data_stream(data, options) do
