@@ -119,11 +119,20 @@ defmodule Alchemy.Voice.Controller do
         filter_complex
       end
 
-    ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "#{file_path}", "-filter_complex", filter_complex, "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
+    if options[:pitch] != nil do
+      # sox path
+      ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "#{file_path}", "-filter_complex", filter_complex, "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
 
-    %Proc{out: audio_stream} =
-      Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, [out: :stream])
-    audio_stream
+      %Proc{out: audio_stream} =
+        Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, [out: :stream])
+      sox(audio_stream, options)
+    else
+      ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "#{file_path}", "-filter_complex", filter_complex, "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
+
+      %Proc{out: audio_stream} =
+        Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, [out: :stream])
+      audio_stream
+    end
   end
 
   defp normalize_value(:speed, value) do
@@ -184,12 +193,44 @@ defmodule Alchemy.Voice.Controller do
       filter_complex
     end
 
-    ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex,
-                      "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
 
-    %Proc{out: audio_stream} =
-      Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, opts)
-    audio_stream
+    if options[:pitch] != nil do
+      # sox path
+      ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex,
+                        "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
+
+      %Proc{out: audio_stream} =
+        Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, opts)
+      sox(audio_stream, options)
+    else
+      ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex,
+                        "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
+
+      %Proc{out: audio_stream} =
+        Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, opts)
+      audio_stream
+    end
+  end
+
+  defp sox(data, options) do
+    opts = [in: data, out: :stream]
+
+    bend_values = Times.main()
+
+    sox_command = ["sox", "-t", "vorbis", "-", "-t", "wav", "-", "gain", "2", "bend"] ++ bend_values
+
+    %Proc{out: sox_out} = Porcelain.spawn("sox", sox_command, opts)
+
+    opusenc(sox_out, options)
+  end
+
+  defp opusenc(data, options) do
+    opts = [in: data, out: :stream]
+
+    opusenc_command = ["opusenc", "-", "-"]
+
+    %Proc{out: opusenc_out} = Porcelain.spawn("opusenc", opusenc_command, opts)
+    opusenc_out
   end
 
   defp run_player(path, type, options, parent, state) do
@@ -227,5 +268,32 @@ defmodule Alchemy.Voice.Controller do
   # this also takes care of adjusting for sleeps taking too long
   defp do_sleep(elapsed, delay \\ 20) do
     max(0, elapsed - :os.system_time(:milli_seconds) + delay)
+  end
+end
+
+
+defmodule Times do
+  def main do
+    result = generate_timestamps(0.1, 350.0, 0.1, [], 1)
+    # result2 = Enum.map_join(result, " ", fn(x) -> x end)
+
+    result
+  end
+
+  def generate_timestamps(start, finish, current, acc, pitch) when start >= finish do
+    Enum.reverse(acc)
+  end
+
+  def generate_timestamps(start, finish, current, acc, pitch) do
+    new_pitch = Enum.random([Enum.random(-1900..-1), Enum.random(1..1900)])
+
+    diff = new_pitch - pitch
+
+    #new_pitch = Enum.random([-1500, -700, -400, -100, 1, 100, 400, 700, 1500])
+
+    rand_pos = Enum.random([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+    res = "#{Float.ceil(rand_pos, 1)},#{diff},#{Float.ceil(rand_pos + 0.3, 1)}"
+
+    generate_timestamps(Float.ceil(rand_pos + 0.3, 1), finish, Float.ceil(rand_pos + 0.3, 1), [res | acc], new_pitch)
   end
 end
