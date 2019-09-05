@@ -217,7 +217,7 @@ defmodule Alchemy.Voice.Controller do
 
     bend_values = Times.main()
 
-    sox_command = ["sox", "-t", "vorbis", "-", "-t", "wav", "-", "gain", "2", "bend"] ++ bend_values
+    sox_command = ["sox", "-V0", "-q", "-t", "vorbis", "-", "-q", "-t", "wav", "-", "gain", "2", "bend"] ++ bend_values
 
     %Proc{out: sox_out} = Porcelain.spawn("sox", sox_command, opts)
 
@@ -227,7 +227,7 @@ defmodule Alchemy.Voice.Controller do
   defp opusenc(data, options) do
     opts = [in: data, out: :stream]
 
-    opusenc_command = ["opusenc", "-", "-"]
+    opusenc_command = ["opusenc", "--quiet", "-", "-"]
 
     %Proc{out: opusenc_out} = Porcelain.spawn("opusenc", opusenc_command, opts)
     opusenc_out
