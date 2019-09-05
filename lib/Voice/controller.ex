@@ -227,7 +227,7 @@ defmodule Alchemy.Voice.Controller do
   defp opusenc(data, options) do
     opts = [in: data, out: :stream]
 
-    ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0" "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
+    ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "pipe:0", "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
 
     %Proc{out: opusenc_out} = Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, opts)
     opusenc_out
