@@ -295,6 +295,6 @@ defmodule Times do
     rand_pos = Enum.random([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
     res = "#{Float.ceil(rand_pos, 1)},#{diff},#{Float.ceil(rand_pos + 0.3, 1)}"
 
-    generate_timestamps(Float.ceil(rand_pos + 0.3, 1), finish, Float.ceil(rand_pos + 0.3, 1), [res | acc], new_pitch)
+    generate_timestamps(Float.ceil(current + 0.7, 1), finish, Float.ceil(current + 0.7, 1), [res | acc], new_pitch)
   end
 end
