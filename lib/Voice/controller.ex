@@ -220,6 +220,7 @@ defmodule Alchemy.Voice.Controller do
     sox_command = ["-V0", "-q", "-t", "vorbis", "-", "-q", "-t", "wav", "-", "gain", "2", "bend"] ++ bend_values
 
     %Proc{out: sox_out} = Porcelain.spawn("/usr/bin/sox", sox_command, opts)
+    Process.sleep(100)
 
     opusenc(sox_out, options)
   end
@@ -231,6 +232,8 @@ defmodule Alchemy.Voice.Controller do
 
 
     %Proc{out: opusenc_out} = Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, opts)
+    IO.inspect(opusenc_out)
+    Process.sleep(100)
     opusenc_out
   end
 
@@ -286,14 +289,14 @@ defmodule Times do
   end
 
   def generate_timestamps(start, finish, current, acc, pitch) do
-    new_pitch = Enum.random([Enum.random(-1900..-1), Enum.random(1..1900)])
+    new_pitch = Enum.random([Enum.random(-1460..-1), Enum.random(1..1460)])
 
     diff = new_pitch - pitch
 
     #new_pitch = Enum.random([-1500, -700, -400, -100, 1, 100, 400, 700, 1500])
 
     rand_pos = Enum.random([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-    res = "#{Float.ceil(rand_pos, 1)},#{diff},#{Float.ceil(rand_pos + 0.3, 1)}"
+    res = "#{Float.ceil(rand_pos, 1)},#{diff},#{Float.ceil(rand_pos + 1.2, 1)}"
 
     generate_timestamps(Float.ceil(current + 0.7, 1), finish, Float.ceil(current + 0.7, 1), [res | acc], new_pitch)
   end
