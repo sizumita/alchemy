@@ -119,7 +119,7 @@ defmodule Alchemy.Voice.Controller do
         filter_complex
       end
 
-    if options[:pitch] != nil or options[:speed] != nil or options[:reverse] != nil or options[:bass] != nil or options[:overdrive] != nil do
+    if options[:pitch] != nil or options[:speed] != nil or options[:reverse] != nil or options[:bass] != nil or options[:overdrive] != nil or options[:stretch] != nil do
       # sox path
       ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "#{file_path}", "-filter_complex", filter_complex, "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
 
@@ -194,7 +194,7 @@ defmodule Alchemy.Voice.Controller do
     end
 
 
-    if options[:pitch] != nil or options[:speed] != nil or options[:reverse] != nil or options[:bass] != nil or options[:overdrive] != nil do
+    if options[:pitch] != nil or options[:speed] != nil or options[:reverse] != nil or options[:bass] != nil or options[:overdrive] != nil or options[:overdrive] != nil do
       # sox path
       ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex,
                         "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
