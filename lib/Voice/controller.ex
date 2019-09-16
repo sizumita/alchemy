@@ -217,7 +217,34 @@ defmodule Alchemy.Voice.Controller do
 
     bend_values = Times.main()
 
-    sox_command = ["-V0", "-q", "-t", "vorbis", "-", "-q", "-t", "wav", "-", "gain", "2", "bend"] ++ bend_values
+    extra = []
+
+    extra =
+    if options[:speed] != nil do
+      extra ++ ["speed", options[:speed]]
+    end
+
+    extra =
+    if options[:reverse] != nil do
+      extra ++ ["reverse"]
+    end
+
+    extra =
+    if options[:bass] != nil do
+      extra ++ ["bass", options[:bass]]
+    end
+
+    extra =
+    if options[:overdrive] != nil do
+      extra ++ ["overdrive", options[:overdrive]]
+    end
+
+    extra =
+    if options[:pitch] != nil do
+      extra ++ ["bend", bend_values]
+    end
+
+    sox_command = ["-V0", "-q", "-t", "vorbis", "-", "-q", "-t", "wav", "-", "gain", "2"] ++ extra
 
     %Proc{out: sox_out} = Porcelain.spawn("/usr/bin/sox", sox_command, opts)
     Process.sleep(100)
@@ -278,7 +305,7 @@ end
 
 defmodule Times do
   def main do
-    result = generate_timestamps(0.1, 350.0, 0.1, [], 1)
+    result = generate_timestamps(0.1, 750.0, 0.1, [], 1)
     # result2 = Enum.map_join(result, " ", fn(x) -> x end)
 
     result
@@ -296,7 +323,7 @@ defmodule Times do
     #new_pitch = Enum.random([-1500, -700, -400, -100, 1, 100, 400, 700, 1500])
 
     rand_pos = Enum.random([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-    res = "#{Float.ceil(rand_pos, 1)},#{diff},#{Float.ceil(rand_pos + 1.2, 1)}"
+    res = "#{Float.ceil(rand_pos, 1)},#{diff},#{Float.ceil(rand_pos + 1.4, 1)}"
 
     generate_timestamps(Float.ceil(current + 0.7, 1), finish, Float.ceil(current + 0.7, 1), [res | acc], new_pitch)
   end
