@@ -119,7 +119,7 @@ defmodule Alchemy.Voice.Controller do
         filter_complex
       end
 
-    if options[:pitch] != nil do
+    if options[:pitch] != nil or options[:speed] != nil or options[:reverse] != nil or options[:bass] != nil or options[:overdrive] != nil do
       # sox path
       ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "#{file_path}", "-filter_complex", filter_complex, "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
 
@@ -194,7 +194,7 @@ defmodule Alchemy.Voice.Controller do
     end
 
 
-    if options[:pitch] != nil do
+    if options[:pitch] != nil or options[:speed] != nil or options[:reverse] != nil or options[:bass] != nil or options[:overdrive] != nil do
       # sox path
       ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex,
                         "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
@@ -221,27 +221,37 @@ defmodule Alchemy.Voice.Controller do
 
     extra =
     if options[:speed] != nil do
-      extra ++ ["speed", options[:speed]]
+      extra ++ ["speed", Float.to_string(options[:speed])]
+    else
+      extra
     end
 
     extra =
     if options[:reverse] != nil do
       extra ++ ["reverse"]
+    else
+      extra
     end
 
     extra =
     if options[:bass] != nil do
-      extra ++ ["bass", options[:bass]]
+      extra ++ ["bass", Float.to_string(options[:bass])]
+    else
+      extra
     end
 
     extra =
     if options[:overdrive] != nil do
-      extra ++ ["overdrive", options[:overdrive]]
+      extra ++ ["overdrive", Float.to_string(options[:overdrive])]
+    else
+      extra
     end
 
     extra =
     if options[:pitch] != nil do
-      extra ++ ["bend", bend_values]
+      extra ++ ["bend"] ++ bend_values
+    else
+      extra
     end
 
     sox_command = ["-V0", "-q", "-t", "vorbis", "-", "-q", "-t", "wav", "-", "gain", "2"] ++ extra
