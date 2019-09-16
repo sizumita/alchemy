@@ -248,6 +248,13 @@ defmodule Alchemy.Voice.Controller do
     end
 
     extra =
+    if options[:stretch] != nil do
+      extra ++ ["stretch", Float.to_string(options[:stretch])]
+    else
+      extra
+    end
+
+    extra =
     if options[:pitch] != nil do
       extra ++ ["bend"] ++ bend_values
     else
