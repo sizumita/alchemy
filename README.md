@@ -1,5 +1,24 @@
 # Alchemy
 
+This fork was made to add bot-specific features that I personally wanted.
+Here's a list of the new features:
+1. Made a distinction between audio being stopped automatically after playing audio (end of audio file or YouTube video), and audio being manually stopped (such as a !stop command).
+   * This was added because otherwise it would be impossible to add a queue system for playing audio files.
+2. Added several audio effects/filters.
+   * Phaser
+   * Flanger
+   * Speed (speed of audio, slower or faster. This effect uses SoX)
+   * Bass (higher or lower bass. This effect uses SoX)
+   * Overdrive (Distorts audio, much like setting a very high volume when encoding with ffmpeg. This effect uses SoX)
+   * Stretch (Stretches audio, like speed, but it doesn't change the pitch. This effect uses SoX)
+   * Reverse (Reverses audio. This effect uses SoX)
+   * Pitch (Randomly changes the pitch of audio. This effect uses SoX)
+
+For some reason, if the bot stays connected to a voice channel for a long time without activity, it "disconnects" from the voice channel (specifically the gateway or whatever), or it just times out.
+This has not been fixed yet, but it will be fixed.
+
+## Original Description
+
 A discord library / framework for elixir.
 
 This library aims to provide a solid foundation, upon which to build
