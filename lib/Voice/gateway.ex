@@ -83,8 +83,11 @@ defmodule Alchemy.Voice.Gateway do
       :gen_udp.close(state.udp)
     end
 
-    Supervisor.terminate_child(Alchemy.Voice.Supervisor.Gateway, self())
-    Alchemy.Discord.Gateway.RateLimiter.change_voice_state(state[:guild_id], nil)
+    spawn(fn ->
+      Process.sleep(1000)
+      Supervisor.terminate_child(Alchemy.Voice.Supervisor.Gateway, self())
+      Alchemy.Discord.Gateway.RateLimiter.change_voice_state(state[:guild_id], nil)
+    end)
 
     {:ok, state}
   end
