@@ -51,7 +51,7 @@ defmodule Alchemy.Voice.Gateway do
   defmodule State do
     @moduledoc false
     defstruct [:token, :guild_id, :channel, :user_id, :url, :session, :udp,
-               :discord_ip, :discord_port, :my_ip, :my_port, :ssrc, :key]
+               :discord_ip, :discord_port, :my_ip, :my_port, :ssrc, :key, :controller_pid]
   end
 
   def start_link(url, token, session, user_id, guild_id, channel) do
@@ -59,7 +59,7 @@ defmodule Alchemy.Voice.Gateway do
     :ssl.start()
     url = String.replace(url, ":80", "")
     state = %State{token: token, guild_id: guild_id, user_id: user_id,
-                   url: url, session: session, channel: channel}
+                   url: url, session: session, channel: channel, controller_pid: nil}
     :websocket_client.start_link("wss://" <> url, __MODULE__, state)
   end
 
@@ -83,13 +83,7 @@ defmodule Alchemy.Voice.Gateway do
       :gen_udp.close(state.udp)
     end
 
-    spawn(fn ->
-      Process.sleep(1000)
-      Supervisor.terminate_child(Alchemy.Voice.Supervisor.Gateway, self())
-      Alchemy.Discord.Gateway.RateLimiter.change_voice_state(state[:guild_id], nil)
-    end)
-
-    {:ok, state}
+    {:reconnect, 3500, state}
   end
 
   def websocket_handle({:text, msg}, _, state) do
@@ -132,13 +126,24 @@ defmodule Alchemy.Voice.Gateway do
   end
 
   def websocket_info({:start_controller, me}, _, state) do
-    {:ok, pid} =
-      Controller.start_link(
-       state.udp, state.key, state.ssrc,
-       state.discord_ip, state.discord_port,
-       state.guild_id, me)
-      Server.send_to(state.guild_id, pid)
-    {:ok, state}
+    if Map.get(state, :controller_pid) != nil do
+      GenServer.stop(Map.get(state, :controller_pid), :shutdown)
+    end
+
+    controller_pid =
+      case Controller.start_link(state.udp, state.key, state.ssrc,
+            state.discord_ip, state.discord_port,
+            state.guild_id, me) do
+        {:ok, pid} ->
+          Server.send_to(state.guild_id, pid)
+          pid
+        e ->
+          Logger.error("Failed to start voice gateway controller.")
+          IO.inspect(e, label: "Error message for 'Failed to start voice gateway controller.'")
+          nil
+      end
+
+    {:ok, %{state | controller_pid: controller_pid}}
   end
 
   def websocket_info({:speaking, flag}, _, state) do
@@ -148,9 +153,6 @@ defmodule Alchemy.Voice.Gateway do
   def websocket_terminate(why, _conn_state, state) do
     Logger.debug("Voice Gateway for #{state.guild_id} terminated, "
                  <> "reason: #{inspect why}")
-
-    Supervisor.terminate_child(Alchemy.Voice.Supervisor.Gateway, self())
-    Alchemy.Discord.Gateway.RateLimiter.change_voice_state(state[:guild_id], nil)
 
     :ok
   end
