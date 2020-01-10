@@ -121,6 +121,7 @@ defmodule Alchemy.Voice.Controller do
 
     if check_options(options) do
       # sox path
+      IO.puts("sox path mk_stream")
       ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "#{file_path}", "-filter_complex", filter_complex, "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
 
       %Proc{out: audio_stream} =
@@ -196,6 +197,7 @@ defmodule Alchemy.Voice.Controller do
 
     if check_options(options) do
       # sox path
+      IO.puts("sox path")
       ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex,
                         "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
 
@@ -348,12 +350,15 @@ end
 
 defmodule Times do
   def main do
-    generate_timestamps(0.1, 750.0, 0.1, [], 1, default_low(), default_high())
+    result = generate_timestamps(0.1, 750.0, 0.1, [], 1, default_low(), default_high())
     # result2 = Enum.map_join(result, " ", fn(x) -> x end)
+    result
   end
 
   def main(low, high) do
-    generate_timestamps(0.1, 750.0, 0.1, [], 1, low, high)
+    result = generate_timestamps(0.1, 750.0, 0.1, [], 1, low, high)
+
+    result
   end
 
   def generate_timestamps(start, finish, current, acc, pitch, low, high) when start >= finish do
