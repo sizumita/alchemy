@@ -4,6 +4,8 @@ defmodule Alchemy.Voice.Controller do
   require Logger
   alias Alchemy.Voice.Supervisor.VoiceRegistry
   alias Porcelain.Process, as: Proc
+  @default_low -1400
+  @default_high 1400
 
   defmodule State do
     @moduledoc false
@@ -119,7 +121,7 @@ defmodule Alchemy.Voice.Controller do
         filter_complex
       end
 
-    if options[:pitch] != nil or options[:speed] != nil or options[:reverse] != nil or options[:bass] != nil or options[:overdrive] != nil or options[:stretch] != nil do
+    if check_options(options) do
       # sox path
       ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "#{file_path}", "-filter_complex", filter_complex, "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
 
@@ -194,7 +196,7 @@ defmodule Alchemy.Voice.Controller do
     end
 
 
-    if options[:pitch] != nil or options[:speed] != nil or options[:reverse] != nil or options[:bass] != nil or options[:overdrive] != nil or options[:stretch] != nil do
+    if check_options(options) do
       # sox path
       ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0", "-filter_complex", filter_complex,
                         "-f", "ogg", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libvorbis", "-b:a", "128k", "pipe:1"]
@@ -212,10 +214,19 @@ defmodule Alchemy.Voice.Controller do
     end
   end
 
+  defp check_options(options) do
+    options[:pitch] != nil or
+    options[:pitchlow] != nil or
+    options[:pitchhigh] != nil or
+    options[:speed] != nil or
+    options[:reverse] != nil or
+    options[:bass] != nil or
+    options[:overdrive] != nil or
+    options[:stretch] != nil
+  end
+
   defp sox(data, options) do
     opts = [in: data, out: :stream]
-
-    bend_values = Times.main()
 
     extra = []
 
@@ -256,6 +267,23 @@ defmodule Alchemy.Voice.Controller do
 
     extra =
     if options[:pitch] != nil do
+      bend_values = Times.main()
+      extra ++ ["bend"] ++ bend_values
+    else
+      extra
+    end
+
+    extra =
+    if options[:pitchlow] != nil do
+      bend_values = Times.main(@default_low, 2)
+      extra ++ ["bend"] ++ bend_values
+    else
+      extra
+    end
+
+    extra =
+    if options[:pitchhigh] != nil do
+      bend_values = Times.main(-2, @default_high)
       extra ++ ["bend"] ++ bend_values
     else
       extra
@@ -322,18 +350,20 @@ end
 
 defmodule Times do
   def main do
-    result = generate_timestamps(0.1, 750.0, 0.1, [], 1)
+    generate_timestamps(0.1, 750.0, 0.1, [], 1, @default_low, @default_high)
     # result2 = Enum.map_join(result, " ", fn(x) -> x end)
-
-    result
   end
 
-  def generate_timestamps(start, finish, current, acc, pitch) when start >= finish do
+  def main(low, high) do
+    generate_timestamps(0.1, 750.0, 0.1, [], 1, low, high)
+  end
+
+  def generate_timestamps(start, finish, current, acc, pitch, low, high) when start >= finish do
     Enum.reverse(acc)
   end
 
-  def generate_timestamps(start, finish, current, acc, pitch) do
-    new_pitch = Enum.random([Enum.random(-1460..-1), Enum.random(1..1460)])
+  def generate_timestamps(start, finish, current, acc, pitch, low, high) do
+    new_pitch = Enum.random([Enum.random(-low..-1), Enum.random(1..high)])
 
     diff = new_pitch - pitch
 
@@ -342,6 +372,6 @@ defmodule Times do
     rand_pos = Enum.random([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
     res = "#{Float.ceil(rand_pos, 1)},#{diff},#{Float.ceil(rand_pos + 1.4, 1)}"
 
-    generate_timestamps(Float.ceil(current + 0.7, 1), finish, Float.ceil(current + 0.7, 1), [res | acc], new_pitch)
+    generate_timestamps(Float.ceil(current + 0.7, 1), finish, Float.ceil(current + 0.7, 1), [res | acc], new_pitch, low, high)
   end
 end
