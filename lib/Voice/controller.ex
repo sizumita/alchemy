@@ -362,6 +362,9 @@ defmodule Times do
 
   def generate_timestamps(start, finish, current, acc, pitch, low, high) do
     new_pitch = Enum.random([Enum.random(-low..-1), Enum.random(1..high)])
+    IO.inspect(new_pitch)
+    IO.inspect(-low)
+    IO.inspect(high)
 
     diff = new_pitch - pitch
 
