@@ -291,9 +291,11 @@ defmodule Alchemy.Voice.Controller do
 
     sox_command = ["-V0", "-q", "-t", "vorbis", "-", "-q", "-t", "wav", "-", "gain", "2"] ++ extra
 
+    IO.inspect(sox_command)
     %Proc{out: sox_out} = Porcelain.spawn("/usr/bin/sox", sox_command, opts)
     Process.sleep(100)
 
+    IO.inspect("fug")
     opusenc(sox_out, options)
   end
 
@@ -302,10 +304,12 @@ defmodule Alchemy.Voice.Controller do
 
     ffmpeg_command = ["-hide_banner", "-loglevel", "quiet", "-i", "pipe:0", "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"]
 
+    IO.puts("lol xd")
 
     %Proc{out: opusenc_out} = Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path), ffmpeg_command, opts)
     IO.inspect(opusenc_out)
     Process.sleep(100)
+    IO.puts("kumm")
     opusenc_out
   end
 
