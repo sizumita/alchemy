@@ -4,8 +4,6 @@ defmodule Alchemy.Voice.Controller do
   require Logger
   alias Alchemy.Voice.Supervisor.VoiceRegistry
   alias Porcelain.Process, as: Proc
-  @default_low -1400
-  @default_high 1400
 
   defmodule State do
     @moduledoc false
@@ -275,7 +273,7 @@ defmodule Alchemy.Voice.Controller do
 
     extra =
     if options[:pitchlow] != nil do
-      bend_values = Times.main(@default_low, 2)
+      bend_values = Times.main(Times.default_low(), 2)
       extra ++ ["bend"] ++ bend_values
     else
       extra
@@ -283,7 +281,7 @@ defmodule Alchemy.Voice.Controller do
 
     extra =
     if options[:pitchhigh] != nil do
-      bend_values = Times.main(-2, @default_high)
+      bend_values = Times.main(-2, Times.default_high())
       extra ++ ["bend"] ++ bend_values
     else
       extra
@@ -350,7 +348,7 @@ end
 
 defmodule Times do
   def main do
-    generate_timestamps(0.1, 750.0, 0.1, [], 1, @default_low, @default_high)
+    generate_timestamps(0.1, 750.0, 0.1, [], 1, default_low(), default_high())
     # result2 = Enum.map_join(result, " ", fn(x) -> x end)
   end
 
@@ -374,4 +372,11 @@ defmodule Times do
 
     generate_timestamps(Float.ceil(current + 0.7, 1), finish, Float.ceil(current + 0.7, 1), [res | acc], new_pitch, low, high)
   end
-end
+
+  def default_low() do
+    -1400
+  end
+
+  def default_high() do
+    1400
+  end
