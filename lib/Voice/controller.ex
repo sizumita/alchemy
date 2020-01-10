@@ -380,3 +380,4 @@ defmodule Times do
   def default_high() do
     1400
   end
+end
