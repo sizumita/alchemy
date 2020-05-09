@@ -83,7 +83,7 @@ defmodule Alchemy.Voice.Gateway do
       :gen_udp.close(state.udp)
     end
 
-    {:reconnect, 3500, state}
+    {:close, "Closed connection to Voice Gateway for #{state.guild_id} because of intermittent error? Reason: #{inspect reason}", state}
   end
 
   def websocket_handle({:text, msg}, _, state) do
