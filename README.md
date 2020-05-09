@@ -23,7 +23,7 @@ Basically none of the changes I've made have been documented in terms of develop
 
 The releases available on github are not guaranteed to be stable, or even working whatsoever, so use them and this fork at your own risk. Saying that though, if I've made a release that doesn't work, a release should come up shortly after that does actually work. The master branch should also not be considered stable.
 
-This fork is made for solely me, with no regard for anyone else using it, therefore, if you'd like to know what changes were made in detail, go through all of the commits I've done.
+This fork is made solely for me, with no regard for anyone else using it, therefore, if you'd like to know what changes were made in detail, go through all of the commits I've done.
 
 ## Original Description
 
