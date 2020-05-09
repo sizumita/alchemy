@@ -17,6 +17,14 @@ Here's a list of the new features:
 For some reason, if the bot stays connected to a voice channel for a long time without activity, it "disconnects" from the voice channel (specifically the gateway or whatever), or it just times out.
 This has not been fixed yet, but it will be fixed.
 
+## Important note before using this fork of Alchemy
+
+Basically none of the changes I've made have been documented in terms of developer documentation, so good luck using it :^)
+
+The releases available on github are not guaranteed to be stable, or even working whatsoever, so use them and this fork at your own risk. Saying that though, if I've made a release that doesn't work, a release should come up shortly after that does actually work. The master branch should also not be considered stable.
+
+This fork is made for solely me, with no regard for anyone else using it, therefore, if you'd like to know what changes were made in detail, go through all of the commits I've done.
+
 ## Original Description
 
 A discord library / framework for elixir.
