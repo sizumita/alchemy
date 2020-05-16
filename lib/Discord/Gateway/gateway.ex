@@ -42,6 +42,15 @@ defmodule Alchemy.Discord.Gateway do
     msg |> (fn x -> Poison.Parser.parse!(x, %{}) end).() |> dispatch(state)
   end
 
+  def websocket_handle(whatever, _, state) do
+    IO.inspect whatever, label: "websocket_handle/3 Discord.Gateway"
+    {:ok, state}
+  end
+  def websocket_handle(whatever, state) do
+    IO.inspect whatever, label: "websocket_handle/2 Discord.Gateway"
+    {:ok, state}
+  end
+
   # Heartbeats need to be sent every interval
   def websocket_info({:heartbeat, interval}, _conn_state, state) do
     Process.send_after(self(), {:heartbeat, interval}, interval)
