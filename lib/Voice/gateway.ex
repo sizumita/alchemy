@@ -96,6 +96,18 @@ defmodule Alchemy.Voice.Gateway do
     msg |> fn x -> Poison.Parser.parse!(x, %{}) end.() |> dispatch(state)
   end
 
+  def websocket_handle({:text, msg}, state) do
+    msg |> fn x -> Poison.Parser.parse!(x, %{}) end.() |> dispatch(state)
+  end
+
+  def websocket_handle(fallback, _, state) do
+    IO.inspect fallback, label: "unexpected message in voice websocket handler/3"
+  end
+
+  def websocket_handle(fallback, state) do
+    IO.inspect fallback, label: "unexpected message in voice websocket handler/2"
+  end
+
   def dispatch(%{"op" => 2, "d" => payload}, state) do
     {my_ip, my_port, discord_ip, udp} =
       UDP.open_udp(payload["ip"], payload["port"], payload["ssrc"])
