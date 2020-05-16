@@ -15,7 +15,8 @@ defmodule Alchemy.Voice.Gateway do
       ready: 2,
       heartbeat: 3,
       session: 4,
-      speaking: 5
+      speaking: 5,
+      resume: 6
     }
 
     def build_payload(data, op) do
@@ -45,6 +46,11 @@ defmodule Alchemy.Voice.Gateway do
     def speaking(flag) do
       %{"speaking" => flag, "delay" => 0}
       |> build_payload(:speaking)
+    end
+
+    def resume(token, session, seq) do
+      %{"token" => token, "session_id" => session, "seq" => seq}
+      |> build_payoad(:resume)
     end
   end
 
@@ -103,6 +109,11 @@ defmodule Alchemy.Voice.Gateway do
   def dispatch(%{"op" => 4, "d" => payload}, state) do
     send(self(), {:start_controller, self()})
     {:ok, %{state | key: :erlang.list_to_binary(payload["secret_key"])}}
+  end
+
+  def dispatch(%{"op" => 7}, state) do
+    payload = Payloads.identify(state.token, state.session, state.seq)
+    {:reply, {:text, payload}, state}
   end
 
   def dispatch(%{"op" => 8, "d" => payload}, state) do
