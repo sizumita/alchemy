@@ -50,7 +50,7 @@ defmodule Alchemy.Voice.Gateway do
 
     def resume(token, session, seq) do
       %{"token" => token, "session_id" => session, "seq" => seq}
-      |> build_payoad(:resume)
+      |> build_payload(:resume)
     end
   end
 
