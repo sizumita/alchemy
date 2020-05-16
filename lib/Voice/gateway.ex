@@ -102,10 +102,12 @@ defmodule Alchemy.Voice.Gateway do
 
   def websocket_handle(fallback, _, state) do
     IO.inspect fallback, label: "unexpected message in voice websocket handler/3"
+    {:ok, state}
   end
 
   def websocket_handle(fallback, state) do
     IO.inspect fallback, label: "unexpected message in voice websocket handler/2"
+    {:ok, state}
   end
 
   def dispatch(%{"op" => 2, "d" => payload}, state) do
